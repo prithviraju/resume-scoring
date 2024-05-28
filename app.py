@@ -45,16 +45,17 @@ async def extract_ners_from_text(text, perspective):
     return content, prompt_tokens, completion_tokens
 
 async def compare_ners(resume_ners, jd_ners):
-    comparison_prompt = (
-        f"Compare the following named entities extracted from a candidate's resume and a company's job description. "
-        f"Consider the relevance, context, and importance of each entity in the context of job matching. Assign a similarity score "
-        f"between -1 and 1, with -1 indicating no match, 0 indicating neutral, and 1 indicating a perfect match, give this to a decimal upto to 10 "
-        f"Give extra importance to the Role and relevant first-level skills/experience match. Use the following weights: "
-        f"50% for Work Experience and Role, 35% for first-level Skills, and 15% for Education. Do not compare second and third-level skills.\n\n"
-        f"Resume Named Entities:\n{resume_ners}\n\n"
-        f"Job Description Named Entities:\n{jd_ners}\n\n"
-        f"Output the similarity score followed by the reasoning (upto 300 character) in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
-    )
+comparison_prompt = (
+    f"Compare the named entities from a candidate's resume and a company's job description. "
+    f"Evaluate their relevance, context, and importance for job matching. Assign a similarity score "
+    f"between -1 and 1, where -1 indicates no match, 0 indicates neutral, and 1 indicates a perfect match. Scores should be accurate to ten decimal places. "
+    f"Prioritize Role and first-level skills/experience match. Use the following weights for the final score: "
+    f"50% for Work Experience and Role, 35% for First-Level Skills, and 15% for Education. Exclude second and third-level skills.\n\n"
+    f"Resume Named Entities:\n{resume_ners}\n\n"
+    f"Job Description Named Entities:\n{jd_ners}\n\n"
+    f"Output the similarity score followed by a brief reasoning (up to 300 characters) in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
+)
+
 
     response = await openai.chat.completions.acreate(
         model="gpt-3.5-turbo",
