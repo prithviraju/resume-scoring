@@ -5,7 +5,7 @@ import openai
 import asyncio
 import time
 
-openai.api_key = os.environ.get('OPENAI_API_KEY', 'sk-your-default-key') 
+openai.api_key = 'sk-proj-PAJ0vigCyP4EYVWW79MdT3BlbkFJ7NrUnWy7zgu6XB5WufIJ'  # Replace with your OpenAI API key
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -22,13 +22,14 @@ def extract_text_from_pdf(pdf_path):
 
 async def extract_ners_from_text(text, perspective):
     prompt = (
-        f"Extract the following named entities from the {perspective}:\n\n"
+        f"Please extract the following named entities from the given {perspective}. Ensure the data is accurate to 10 decimal places "
+        f"and provide the entities in a clear, consistent format:\n\n"
         f"1. Role\n"
         f"2. Experience\n"
         f"3. Work Experience\n"
         f"4. Education\n\n"
         f"Text:\n{text}\n\n"
-        f"Named Entities:"
+        f"Extracted Named Entities:"
     )
 
     response = await openai.ChatCompletion.acreate(
@@ -40,18 +41,18 @@ async def extract_ners_from_text(text, perspective):
         max_tokens=150
     )
     content = response.choices[0].message['content'].strip()
-    prompt_tokens = response.usage['prompt_tokens']
-    completion_tokens = response.usage['completion_tokens']
+    prompt_tokens = response['usage']['prompt_tokens']
+    completion_tokens = response['usage']['completion_tokens']
     return content, prompt_tokens, completion_tokens
 
 async def compare_ners(resume_ners, jd_ners):
     comparison_prompt = (
-        f"Compare the named entities from a candidate's resume and a company's job description. "
-        f"Evaluate their relevance, context, and importance for job matching. Assign a similarity score "
-        f"between -1 and 1, where -1 indicates no match, 0 indicates neutral, and 1 indicates a perfect match. "
-        f"Scores should be accurate to ten decimal places. "
-        f"Prioritize Role and first-level skills/experience match. Use the following weights for the final score: "
-        f"50% for Work Experience and Role, 35% for First-Level Skills, and 15% for Education. Exclude second and third-level skills.\n\n"
+        f"Compare the following named entities extracted from a candidate's resume and a company's job description. "
+        f"Provide a similarity score accurate to 10 decimal places. Consider the relevance, context, and importance of each entity "
+        f"in the context of job matching. Assign a similarity score between -1 and 1, with -1 indicating no match, 0 indicating neutral, "
+        f"and 1 indicating a perfect match. Give extra importance to the Role and relevant first-level skills/experience match. "
+        f"Use the following weights: 50% for Work Experience and Role, 35% for first-level Skills, and 15% for Education. "
+        f"Do not compare second and third-level skills.\n\n"
         f"Resume Named Entities:\n{resume_ners}\n\n"
         f"Job Description Named Entities:\n{jd_ners}\n\n"
         f"Output the similarity score followed by the reasoning in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
@@ -63,12 +64,12 @@ async def compare_ners(resume_ners, jd_ners):
             {"role": "system", "content": "You are a helpful AI assistant."},
             {"role": "user", "content": comparison_prompt}
         ],
-        max_tokens=150
+        max_tokens=100
     )
 
     result = response.choices[0].message['content'].strip()
-    prompt_tokens = response.usage['prompt_tokens']
-    completion_tokens = response.usage['completion_tokens']
+    prompt_tokens = response['usage']['prompt_tokens']
+    completion_tokens = response['usage']['completion_tokens']
     try:
         score_part, reasoning_part = result.split('Reasoning:', 1)
         score = score_part.split(':')[1].strip()
