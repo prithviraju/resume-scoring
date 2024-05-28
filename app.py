@@ -5,7 +5,7 @@ import openai
 import asyncio
 import time
 
-openai.api_key = os.environ.get('OPENAI_API_KEY', 'sk-your-default-key')  # Replace with your OpenAI API key
+openai.api_key = os.environ.get('OPENAI_API_KEY', 'sk-your-default-key') 
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
