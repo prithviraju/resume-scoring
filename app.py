@@ -38,7 +38,7 @@ async def extract_ners_from_text(text, perspective):
             {"role": "system", "content": "You are a helpful AI assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=200
     )
     content = response.choices[0].message['content'].strip()
     prompt_tokens = response['usage']['prompt_tokens']
@@ -64,7 +64,7 @@ async def compare_ners(resume_ners, jd_ners):
             {"role": "system", "content": "You are a helpful AI assistant."},
             {"role": "user", "content": comparison_prompt}
         ],
-        max_tokens=150
+        max_tokens=200
     )
 
     result = response.choices[0].message['content'].strip()
