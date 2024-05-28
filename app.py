@@ -31,7 +31,7 @@ async def extract_ners_from_text(text, perspective):
         f"Named Entities:"
     )
 
-    response = await openai.ChatCompletion.acreate(
+    response = await openai.chat.completions.acreate(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful AI assistant."},
@@ -56,7 +56,7 @@ async def compare_ners(resume_ners, jd_ners):
         f"Output the similarity score followed by the reasoning in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
     )
 
-    response = await openai.ChatCompletion.acreate(
+    response = await openai.chat.completions.acreate(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful AI assistant."},
