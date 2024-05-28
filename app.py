@@ -64,7 +64,7 @@ async def compare_ners(resume_ners, jd_ners):
             {"role": "system", "content": "You are a helpful AI assistant."},
             {"role": "user", "content": comparison_prompt}
         ],
-        max_tokens=100
+        max_tokens=150
     )
 
     result = response.choices[0].message['content'].strip()
