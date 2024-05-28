@@ -53,7 +53,7 @@ async def compare_ners(resume_ners, jd_ners):
         f"50% for Work Experience and Role, 35% for first-level Skills, and 15% for Education. Do not compare second and third-level skills.\n\n"
         f"Resume Named Entities:\n{resume_ners}\n\n"
         f"Job Description Named Entities:\n{jd_ners}\n\n"
-        f"Output the similarity score followed by the reasoning in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
+        f"Output the similarity score upto 10 decimals followed by the reasoning in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
     )
 
     response = await openai.chat.completions.acreate(
