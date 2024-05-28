@@ -1,5 +1,5 @@
 Flask==2.1.1
 PyMuPDF==1.18.19
-openai==0.10.2
+openai==1.30.3
 Werkzeug==2.0.3
 
