@@ -48,12 +48,12 @@ async def compare_ners(resume_ners, jd_ners):
     comparison_prompt = (
         f"Compare the following named entities extracted from a candidate's resume and a company's job description. "
         f"Consider the relevance, context, and importance of each entity in the context of job matching. Assign a similarity score "
-        f"between -1 and 1, with -1 indicating no match, 0 indicating neutral, and 1 indicating a perfect match. "
+        f"between -1 and 1, with -1 indicating no match, 0 indicating neutral, and 1 indicating a perfect match, give this to a decimal upto to 10 "
         f"Give extra importance to the Role and relevant first-level skills/experience match. Use the following weights: "
         f"50% for Work Experience and Role, 35% for first-level Skills, and 15% for Education. Do not compare second and third-level skills.\n\n"
         f"Resume Named Entities:\n{resume_ners}\n\n"
         f"Job Description Named Entities:\n{jd_ners}\n\n"
-        f"Output the similarity score upto 10 decimals followed by the reasoning in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
+        f"Output the similarity score followed by the reasoning (upto 300 character) in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
     )
 
     response = await openai.chat.completions.acreate(
@@ -62,7 +62,7 @@ async def compare_ners(resume_ners, jd_ners):
             {"role": "system", "content": "You are a helpful AI assistant."},
             {"role": "user", "content": comparison_prompt}
         ],
-        max_tokens=100
+        max_tokens=150
     )
 
     result = response.choices[0].message['content'].strip()
