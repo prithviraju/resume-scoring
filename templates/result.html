@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparison Result</title>
+    <title>Comparison Results</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,23 +21,12 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
         }
         h1 {
             text-align: center;
             color: #007BFF;
-        }
-        p {
-            line-height: 1.6;
-        }
-        strong {
-            color: #0056b3;
-        }
-        h2 {
-            color: #333;
-            border-bottom: 2px solid #007BFF;
-            padding-bottom: 5px;
         }
         .note {
             font-size: 0.9em;
@@ -51,6 +40,19 @@
             background-color: #f9f2f4; /* Highlight background color */
             padding: 5px;
             border-radius: 5px;
+        }
+        .result {
+            margin-bottom: 20px;
+        }
+        .result h2 {
+            color: #333;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 5px;
+            cursor: pointer;
+        }
+        .result-details {
+            display: none;
+            margin-top: 10px;
         }
         .back-link {
             display: block;
@@ -67,14 +69,29 @@
             background-color: #0056b3;
         }
     </style>
+    <script>
+        function toggleDetails(id) {
+            var details = document.getElementById(id);
+            if (details.style.display === "none") {
+                details.style.display = "block";
+            } else {
+                details.style.display = "none";
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">
-        <h1>Comparison Result</h1>
+        <h1>Comparison Results</h1>
         <div class="note">Note: The similarity score ranges from -1 to 1, with -1 indicating no match, 0 indicating neutral, and 1 indicating a perfect match.</div>
-        <p><strong>Similarity Score:</strong> <span class="score">{{ score }}</span></p>
-        <h2>Reasoning:</h2>
-        <p>{{ reasoning }}</p>
+        {% for i, score in enumerate(scores) %}
+        <div class="result">
+            <h2 onclick="toggleDetails('details-{{ i }}')">Result {{ i + 1 }}: <span class="score">{{ score }}</span></h2>
+            <div id="details-{{ i }}" class="result-details">
+                <p><strong>Reasoning:</strong> {{ reasonings[i] }}</p>
+            </div>
+        </div>
+        {% endfor %}
         <p><strong>Total Cost:</strong> ${{ total_cost | default(0) | round(4) }}</p>
         <p><strong>Total Time Taken:</strong> {{ total_time | default(0) | round(2) }} seconds</p>
         <a class="back-link" href="/">Back to Home</a>
