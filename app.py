@@ -73,7 +73,7 @@ async def compare_ners(resume_ners, jd_ners):
         max_tokens=200
     )
 
-    result = response.choices[0].message['content'].strip()
+    result = response.choices[0].message.content.strip()
     prompt_tokens = response['usage']['prompt_tokens']
     completion_tokens = response['usage']['completion_tokens']
     try:
@@ -94,24 +94,33 @@ def compare():
     start_time = time.time()
     
     jd_text = request.form['jd_text']
-    resume_file = request.files['resume_file']
+    resume_files = request.files.getlist('resume_files')
 
-    if resume_file:
-        filename = os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename)
-        resume_file.save(filename)
-
-        resume_text = extract_text_from_pdf(filename)
-
+    if resume_files:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-        jd_ners, jd_prompt_tokens, jd_completion_tokens = loop.run_until_complete(extract_ners_from_text(jd_text, "job description"))
-        resume_ners, resume_prompt_tokens, resume_completion_tokens = loop.run_until_complete(extract_ners_from_text(resume_text, "resume"))
+        all_scores = []
+        all_reasonings = []
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
 
-        similarity_score, reasoning, comparison_prompt_tokens, comparison_completion_tokens = loop.run_until_complete(compare_ners(resume_ners, jd_ners))
+        for resume_file in resume_files:
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename)
+            resume_file.save(filename)
 
-        total_prompt_tokens = jd_prompt_tokens + resume_prompt_tokens + comparison_prompt_tokens
-        total_completion_tokens = jd_completion_tokens + resume_completion_tokens + comparison_completion_tokens
+            resume_text = extract_text_from_pdf(filename)
+
+            jd_ners, jd_prompt_tokens, jd_completion_tokens = loop.run_until_complete(extract_ners_from_text(jd_text, "job description"))
+            resume_ners, resume_prompt_tokens, resume_completion_tokens = loop.run_until_complete(extract_ners_from_text(resume_text, "resume"))
+
+            similarity_score, reasoning, comparison_prompt_tokens, comparison_completion_tokens = loop.run_until_complete(compare_ners(resume_ners, jd_ners))
+
+            total_prompt_tokens += jd_prompt_tokens + resume_prompt_tokens + comparison_prompt_tokens
+            total_completion_tokens += jd_completion_tokens + resume_completion_tokens + comparison_completion_tokens
+
+            all_scores.append(similarity_score)
+            all_reasonings.append(reasoning)
 
         # Calculate costs
         prompt_cost = total_prompt_tokens * 0.50 / 1_000_000
@@ -121,10 +130,10 @@ def compare():
         end_time = time.time()
         total_time = end_time - start_time
 
-        return render_template('result.html', score=similarity_score, reasoning=reasoning, 
+        return render_template('result.html', scores=all_scores, reasonings=all_reasonings, 
                                total_cost=total_cost, total_time=total_time)
     else:
-        return "No file uploaded", 400
+        return "No files uploaded", 400
 
 @app.route('/api/compare', methods=['POST'])
 def api_compare():
@@ -132,18 +141,27 @@ def api_compare():
     
     data = request.json
     jd_text = data['jd_text']
-    resume_text = data['resume_text']
+    resume_texts = data['resume_texts']
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    jd_ners, jd_prompt_tokens, jd_completion_tokens = loop.run_until_complete(extract_ners_from_text(jd_text, "job description"))
-    resume_ners, resume_prompt_tokens, resume_completion_tokens = loop.run_until_complete(extract_ners_from_text(resume_text, "resume"))
+    all_scores = []
+    all_reasonings = []
+    total_prompt_tokens = 0
+    total_completion_tokens = 0
 
-    similarity_score, reasoning, comparison_prompt_tokens, comparison_completion_tokens = loop.run_until_complete(compare_ners(resume_ners, jd_ners))
+    for resume_text in resume_texts:
+        jd_ners, jd_prompt_tokens, jd_completion_tokens = loop.run_until_complete(extract_ners_from_text(jd_text, "job description"))
+        resume_ners, resume_prompt_tokens, resume_completion_tokens = loop.run_until_complete(extract_ners_from_text(resume_text, "resume"))
 
-    total_prompt_tokens = jd_prompt_tokens + resume_prompt_tokens + comparison_prompt_tokens
-    total_completion_tokens = jd_completion_tokens + resume_completion_tokens + comparison_completion_tokens
+        similarity_score, reasoning, comparison_prompt_tokens, comparison_completion_tokens = loop.run_until_complete(compare_ners(resume_ners, jd_ners))
+
+        total_prompt_tokens += jd_prompt_tokens + resume_prompt_tokens + comparison_prompt_tokens
+        total_completion_tokens += jd_completion_tokens + resume_completion_tokens + comparison_completion_tokens
+
+        all_scores.append(similarity_score)
+        all_reasonings.append(reasoning)
 
     # Calculate costs
     prompt_cost = total_prompt_tokens * 0.50 / 1_000_000
@@ -154,8 +172,8 @@ def api_compare():
     total_time = end_time - start_time
 
     return jsonify({
-        'score': similarity_score,
-        'reasoning': reasoning,
+        'scores': all_scores,
+        'reasonings': all_reasonings,
         'total_cost': total_cost,
         'total_time': total_time
     })
