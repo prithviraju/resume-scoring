@@ -46,17 +46,24 @@ async def extract_ners_from_text(text, perspective):
     return content, prompt_tokens, completion_tokens
 
 async def compare_ners(resume_ners, jd_ners):
-    comparison_prompt = (
-        f"Compare the following named entities extracted from a candidate's resume and a company's job description. "
-        f"Provide a similarity score accurate to 10 decimal places. Consider the relevance, context, and importance of each entity "
-        f"in the context of job matching. Assign a similarity score between -1 and 1, with -1 indicating no match, 0 indicating neutral, "
-        f"and 1 indicating a perfect match. Give extra importance to the Role and relevant first-level skills/experience match. "
-        f"Use the following weights: 50% for Work Experience and Role, 35% for first-level Skills, and 15% for Education. "
-        f"Do not compare second and third-level skills.\n\n"
-        f"Resume Named Entities:\n{resume_ners}\n\n"
-        f"Job Description Named Entities:\n{jd_ners}\n\n"
-        f"Output the similarity score followed by the reasoning in the format: 'Similarity Score: <score>. Reasoning: <reasoning>'."
-    )
+comparison_prompt = (
+    f"Compare the following named entities extracted from a candidate's resume and a company's job description. "
+    f"Provide a similarity score accurate to 10 decimal places. Consider the relevance, context, and importance of each entity "
+    f"in the context of job matching. Assign a similarity score between -1.0000000000 and 1.0000000000, with -1.0000000000 indicating no match, 0.0000000000 indicating neutral, "
+    f"and 1.0000000000 indicating a perfect match. Give extra importance to the Role and relevant first-level skills/experience match. "
+    f"Use the following weights: 50% for Work Experience and Role, 35% for first-level Skills, and 15% for Education. "
+    f"Do not compare second and third-level skills. Follow these specific instructions for accuracy and format:\n\n"
+    f"1. Role: Compare the role title and description in both the resume and job description.\n"
+    f"2. Experience: Evaluate the relevance and length of experience mentioned.\n"
+    f"3. Work Experience: Assess the alignment of past job responsibilities and achievements.\n"
+    f"4. Education: Compare educational qualifications and their relevance to the job role.\n\n"
+    f"Resume Named Entities:\n{resume_ners}\n\n"
+    f"Job Description Named Entities:\n{jd_ners}\n\n"
+    f"Output the similarity score followed by a concise summary of the reasoning in the exact format below:\n"
+    f"Similarity Score: <score>\n"
+    f"Reasoning: <concise summary of reasoning>"
+)
+
 
     response = await openai.ChatCompletion.acreate(
         model="gpt-3.5-turbo",
